@@ -58,12 +58,13 @@ class WinNamedPipe:
 
 
 class CygwinPipe:
-    def __init__(self):
+    def __init__(self, flags):
+        self.flags = flags
         self.fd = None
 
     def connect(self, address):
         try:
-            self.fd = os.open(r"\\.\pipe\%s" % address, os.O_RDWR | os.O_BINARY)
+            self.fd = os.open(r"\\.\pipe\%s" % address, self.flags)
         except Exception as e:
             raise Exception(
                 "Error: Connection could not be established to pipe {addr}".format(addr=address), e
@@ -91,7 +92,7 @@ class Connection:
         if system == "Windows":
             self.socket = WinNamedPipe(win32file.GENERIC_READ | win32file.GENERIC_WRITE, win32file.OPEN_EXISTING)
         elif system.startswith("CYGWIN_NT"):
-            self.socket = CygwinPipe()
+            self.socket = CygwinPipe(os.O_RDWR | os.O_BINARY)
         else:
             self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             
